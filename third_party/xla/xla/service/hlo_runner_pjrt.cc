@@ -204,8 +204,9 @@ HloRunnerPjRt::TransferLiteralToDevice(const Literal& literal,
   PjRtDevice* device = devices[kDeviceIdx];
 
   if (pjrt_client_->memory_spaces().empty()) {
-    TF_ASSIGN_OR_RETURN(auto assignment,
-                        pjrt_client_->BufferFromHostLiteral(literal, device));
+    TF_ASSIGN_OR_RETURN(auto assignment, pjrt_client_->BufferFromHostLiteral(
+                                             literal, device,
+                                             /* device_layout */ nullptr));
     return std::move(assignment);
   }
 
@@ -219,7 +220,8 @@ HloRunnerPjRt::TransferLiteralToDevice(const Literal& literal,
   TF_ASSIGN_OR_RETURN(PjRtMemorySpace * pjrt_memory_space,
                       get_pjrt_memory_space(device, memory_space));
   TF_ASSIGN_OR_RETURN(auto assignment, pjrt_client_->BufferFromHostLiteral(
-                                           literal, pjrt_memory_space));
+                                           literal, pjrt_memory_space,
+                                           /* device_layout */ nullptr));
   return std::move(assignment);
 }
 
@@ -468,7 +470,8 @@ absl::StatusOr<std::vector<Literal>> HloRunnerPjRt::ExecuteReplicatedImpl(
       TF_RET_CHECK(argument != nullptr);
 
       TF_ASSIGN_OR_RETURN(auto assignment, pjrt_client_->BufferFromHostLiteral(
-                                               *argument, device_ptr));
+                                               *argument, device_ptr,
+                                               /* device_layout */ nullptr));
       replica_buffers.push_back(std::move(assignment));
     }
 

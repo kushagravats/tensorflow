@@ -206,8 +206,8 @@ class ConvertTfQuantToMhloIntTest : public Test {
     std::vector<xla::PjRtBuffer*> buffer_ptrs;
     buffers.reserve(arguments.size());
     for (const xla::Literal* argument : arguments) {
-      TF_ASSIGN_OR_RETURN(
-          auto buffer, pjrt_client_->BufferFromHostLiteral(*argument, device_));
+      TF_ASSIGN_OR_RETURN(auto buffer, pjrt_client_->BufferFromHostLiteral(
+                                           *argument, device_, nullptr));
       buffer_ptrs.push_back(buffer.get());
       buffers.push_back(std::move(buffer));
     }
