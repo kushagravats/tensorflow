@@ -3,6 +3,9 @@
 load("@local_xla//xla/tsl:tsl.bzl", "internal_visibility")
 load("//tsl/platform:build_config.bzl", "tf_proto_library")
 
+# copybara:comment_begin(oss-only)
+load("//tsl/platform/default:build_config.bzl", "tf_proto_library_py")
+# copybara:comment_end
 # copybara:uncomment package(default_applicable_licenses = ["//tensorflow:license"])
 
 package_group(
@@ -123,6 +126,13 @@ tf_proto_library(
 #     deps = [":xplane_proto"],
 # )
 # copybara:uncomment_end
+
+# copybara:comment_begin(oss-only)
+tf_proto_library_py(
+    name = "xplane_proto_external",
+    srcs = ["xplane.proto"],
+)
+# copybara:comment_end
 
 tf_proto_library(
     name = "profiled_instructions_proto",
