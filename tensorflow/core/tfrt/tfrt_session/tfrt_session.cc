@@ -36,7 +36,9 @@ limitations under the License.
 #include "llvm/ADT/STLExtras.h"
 #include "tensorflow/compiler/mlir/tfrt/translate/tfrt_compile_options.h"
 #include "tensorflow/core/common_runtime/device_mgr.h"
+#include "tensorflow/core/common_runtime/graph_constructor.h"
 #include "tensorflow/core/common_runtime/local_session_selection.h"
+#include "tensorflow/core/common_runtime/optimization_registry.h"
 #include "tensorflow/core/common_runtime/process_util.h"
 #include "tensorflow/core/common_runtime/session_factory.h"
 #include "tensorflow/core/framework/tensor.h"
@@ -225,6 +227,23 @@ class TfrtSession : public tensorflow::Session {
     model_context.set_is_local_session(
         !options_.config.experimental().enable_multi_host());
     TF_RETURN_IF_ERROR(options.runtime->CreateRuntimeResources(model_context));
+
+    GraphOptimizationPassOptions optimization_options;
+    optimization_options.session_options = &options_;
+    FunctionLibraryDefinition flib_def = fallback_state->func_lib_def();
+    optimization_options.flib_def = &flib_def;
+    std::unordered_map<string, std::unique_ptr<Graph>> partition_graphs;
+    auto initial_graph =
+        std::make_unique<tensorflow::Graph>(tensorflow::OpRegistry::Global());
+    tensorflow::GraphConstructorOptions opts;
+    opts.allow_internal_ops = true;
+    RETURN_IF_ERROR(
+        tensorflow::ConvertGraphDefToGraph(opts, graph, initial_graph.get()));
+    partition_graphs["graph"] = std::move(initial_graph);
+    optimization_options.partition_graphs = &partition_graphs;
+    OptimizationPassRegistry::Global()->LogAllGroupings(1);
+    TF_RETURN_IF_ERROR(OptimizationPassRegistry::Global()->RunGrouping(
+        OptimizationPassRegistry::POST_PARTITIONING, optimization_options));
 
     // `GraphExecutor::Create()` will preprocess the graph (e.g., apply
     // Placer to the top level graph). `kernel_registry` is required only for
