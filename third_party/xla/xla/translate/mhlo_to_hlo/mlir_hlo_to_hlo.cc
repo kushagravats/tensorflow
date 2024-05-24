@@ -53,6 +53,7 @@ limitations under the License.
 #include "mlir/IR/Operation.h"  // from @llvm-project
 #include "mlir/IR/TypeUtilities.h"  // from @llvm-project
 #include "mlir/IR/UseDefLists.h"  // from @llvm-project
+#include "mlir/IR/Value.h"  // from @llvm-project
 #include "mlir/Pass/Pass.h"  // from @llvm-project
 #include "mlir/Pass/PassManager.h"  // from @llvm-project
 #include "mlir/Support/DebugStringHelper.h"  // from @llvm-project
@@ -3499,15 +3500,23 @@ LogicalResult ConvertToHloModule::LowerBasicBlockAsFunction(
           }
         }
       } else if (args_size == 1) {
+        // Save the location information as a name. For example JAX will set the
+        // name of the function argument of these. Want to preserve these for
+        // debugging.
+        xla::OpMetadata m;
         if (implicit_operands) {
-          lowering[(*implicit_operands)[0]] =
-              xla::Parameter(builder, 0, arg_shapes[0], "Arg_");
+          mlir::Value arg = (*implicit_operands)[0];
+          m.set_op_name(mhlo::GetDebugNameFromLocation(arg.getLoc()));
+          xla::XlaScopedOpMetadataAssignment op_metadata(builder, m);
+          lowering[arg] = xla::Parameter(builder, 0, arg_shapes[0], "Arg_");
         } else {
+          mlir::BlockArgument arg = block->getArgument(0);
+          m.set_op_name(mhlo::GetDebugNameFromLocation(arg.getLoc()));
+          xla::XlaScopedOpMetadataAssignment op_metadata(builder, m);
           xla::XlaScopedShardingAssignment scoped_sharding(
               builder,
               arg_shardings.empty() ? std::nullopt : arg_shardings.front());
-          lowering[block->getArgument(0)] =
-              xla::Parameter(builder, 0, arg_shapes[0], "Arg_");
+          lowering[arg] = xla::Parameter(builder, 0, arg_shapes[0], "Arg_");
         }
       } else {
         // Applicable only for IfOp or CaseOp. No implicit operands implies no
@@ -3527,6 +3536,12 @@ LogicalResult ConvertToHloModule::LowerBasicBlockAsFunction(
           // functions with no tuple args.
           builder->SetFrontendAttributes(*fe_attrs[num]);
         }
+        // Save the location information as a name. For example JAX will set the
+        // name of the function argument of these. Want to preserve these for
+        // debugging.
+        xla::OpMetadata m;
+        m.set_op_name(mhlo::GetDebugNameFromLocation(arg.getLoc()));
+        xla::XlaScopedOpMetadataAssignment op_metadata(builder, m);
         if (entry_args_same_across_replicas.empty()) {
           lowering[arg] =
               xla::Parameter(builder, num, shape, absl::StrCat("Arg_", num));

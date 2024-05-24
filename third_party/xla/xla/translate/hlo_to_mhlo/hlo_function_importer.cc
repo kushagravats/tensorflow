@@ -620,6 +620,13 @@ absl::StatusOr<FuncOp> HloFunctionImporter::ImportAsFunc(
   mlir::Block* block = function.addEntryBlock();
   TF_RETURN_IF_ERROR(ImportInstructions(computation, block));
 
+  // Save location information on the func arguments..
+  for (auto [i, instruction] :
+       llvm::enumerate(computation.parameter_instructions())) {
+    function.getArgument(i).setLoc(
+        mlir::mhlo::GenerateInstructionLocation(instruction, context_));
+  }
+
   return function;
 }
 
