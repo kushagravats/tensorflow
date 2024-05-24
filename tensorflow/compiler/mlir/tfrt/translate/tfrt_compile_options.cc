@@ -56,6 +56,7 @@ std::ostream& operator<<(std::ostream& os, const TfrtCompileOptions& options) {
             << options.enable_while_parallel_iterations
             << ", cost_threshold = " << options.cost_threshold
             << ", min_num_batch_threads = " << options.min_num_batch_threads
+            << ", max_enqueued_batches = " << options.max_enqueued_batches
             << ", merge_inter_dependent_streams = "
             << options.merge_inter_dependent_streams
             << ", decompose_resource_ops = " << options.decompose_resource_ops
