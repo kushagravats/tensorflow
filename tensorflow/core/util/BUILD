@@ -1026,3 +1026,13 @@ tf_proto_library(
         "@local_tsl//tsl:__subpackages__",
     ],
 )
+
+cc_library(
+    name = "bad_indices_handling",
+    srcs = ["bad_indices_handling.cc"],
+    hdrs = ["bad_indices_handling.h"],
+    deps = [
+        "//tensorflow/core/platform:logging",
+        "@com_google_absl//absl/strings:string_view",
+    ],
+)
