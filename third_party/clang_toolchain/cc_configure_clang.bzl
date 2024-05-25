@@ -1,4 +1,6 @@
-""" Downloads clang and configures the crosstool using bazel's autoconf."""
+"""
+Downloads clang and configures the crosstool using Bazel's autoconf.
+"""
 
 load("@bazel_tools//tools/cpp:cc_configure.bzl", "cc_autoconf_impl")
 load(":download_clang.bzl", "download_clang")
