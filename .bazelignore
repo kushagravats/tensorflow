@@ -1,4 +1,5 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# app.py
+# © 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,5 +14,10 @@
 # limitations under the License.
 # ==============================================================================
 
-# The requirements updater has its own WORKSPACE file
-ci/official/requirements_updater
+import tensorflow as tf
+
+# Simple TensorFlow operation
+hello = tf.constant('Hello, TensorFlow!')
+
+# Start a TensorFlow session
+tf.print(hello)
